@@ -1,0 +1,47 @@
+namespace snail
+include "assets"
+
+fn tick() {
+  execute as @e[type=wandering_trader] at @s run &{snail/tick()}
+}
+
+fn load() {
+  snail/pathfind_loop()
+}
+
+module snail {
+  fn tick() {
+    item replace entity @s weapon.mainhand with minecraft:air
+    execute on passengers run data modify entity @s Rotation[0] set from entity @n[tag=snail.entity] Rotation[0]
+  }
+
+  fn pathfind_loop() {
+    execute as @e[tag=snail.entity] run &{pathfind()}
+
+    schedule &{pathfind_loop()} 5t
+  }
+
+  fn spawn() {
+    summon minecraft:wandering_trader ~ ~ ~ {Tags:["snail.entity"],Silent:1b,Invulnerable:1b,Passengers:[{id:"minecraft:item_display",transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,-0.5f,0f],scale:[1f,1f,1f]},item:{id:"minecraft:nautilus_shell",count:1,components:{"minecraft:item_model":"snail:snail"}}}],active_effects:[{id:"minecraft:invisibility",amplifier:0,duration:-1,show_particles:0b}],attributes:[{id:"minecraft:scale",base:0.5}]}
+  }
+
+  fn kill() {
+    execute as @e[tag=snail.entity] run &{kill_entity()}
+  }
+
+  fn kill_entity() {
+    execute on passengers run kill @s
+    kill @s
+  }
+
+  fn pathfind() {
+    @scoreboard(~/pathfind)
+    execute store result score $x snail.snail.pathfind run data get entity Moxvallix Pos[0]
+    execute store result score $y snail.snail.pathfind run data get entity Moxvallix Pos[1]
+    execute store result score $z snail.snail.pathfind run data get entity Moxvallix Pos[2]
+
+    target = [I; $x, $y, $z]
+
+    data modify entity @s wander_target set from storage snail:snail/pathfind target
+  }
+}

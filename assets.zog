@@ -1,0 +1,12 @@
+module snail {
+  asset textures/item "assets/textures/snail/*"
+}
+
+asset models/item "assets/models/*"
+
+asset items snail {
+  "model": {
+    "type": "minecraft:model",
+    "model": "snail:item/snail"
+  }
+}
