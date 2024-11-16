@@ -6,6 +6,7 @@ fn tick() {
 }
 
 fn load() {
+  tellraw @a "Snail Load!"
   snail/pathfind_loop()
 }
 
@@ -22,7 +23,12 @@ module snail {
   }
 
   fn spawn() {
-    summon minecraft:wandering_trader ~ ~ ~ {Tags:["snail.entity"],Silent:1b,Invulnerable:1b,Passengers:[{id:"minecraft:item_display",transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,-0.5f,0f],scale:[1f,1f,1f]},item:{id:"minecraft:nautilus_shell",count:1,components:{"minecraft:item_model":"snail:snail"}}}],active_effects:[{id:"minecraft:invisibility",amplifier:0,duration:-1,show_particles:0b}],attributes:[{id:"minecraft:scale",base:0.5}]}
+    data modify storage snail:snail/spawn uuid set from entity @s UUID
+    spawn_entity(uuid)
+  }
+
+  fn spawn_entity(%uuid) {
+    summon wandering_trader ~ ~ ~ {Silent:1b,Invulnerable:1b,Tags:["snail.entity"],Passengers:[{id:"minecraft:item_display",transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,-0.5f,0f],scale:[1f,1f,1f]},item:{id:"minecraft:nautilus_shell",count:1,components:{"minecraft:item_model":"snail:snail"}}},{id:"minecraft:interaction",width:0f,height:0f,attack:{timestamp: 0L, player: %uuid}}],active_effects:[{id:"minecraft:invisibility",amplifier:0,duration:-1,show_particles:0b}],attributes:[{id:"minecraft:scale",base:0.5}],Offers:{}}
   }
 
   fn kill() {
@@ -36,11 +42,9 @@ module snail {
 
   fn pathfind() {
     @scoreboard(~/pathfind)
-    execute store result score $x snail.snail.pathfind run data get entity Moxvallix Pos[0]
-    execute store result score $y snail.snail.pathfind run data get entity Moxvallix Pos[1]
-    execute store result score $z snail.snail.pathfind run data get entity Moxvallix Pos[2]
+    execute on passengers as @s[type=minecraft:interaction] on attacker run data modify storage snail:snail/pathfind pos set from entity @s Pos
 
-    target = [I; $x, $y, $z]
+    target = [I; pos[0], pos[1], pos[2]]
 
     data modify entity @s wander_target set from storage snail:snail/pathfind target
   }
